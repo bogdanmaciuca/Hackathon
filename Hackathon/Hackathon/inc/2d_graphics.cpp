@@ -74,6 +74,13 @@ Graphics::Graphics(
 Graphics::~Graphics() { Destroy(); }
 
 void Graphics::HandleMessages() {
+	RECT r;
+	GetWindowRect(m_handle, &r);
+	m_window_x = r.left;
+	m_window_y = r.top;
+	m_window_width = r.right - r.left;
+	m_window_height = r.bottom - r.top;
+
 	MSG message;
 	if (PeekMessageA(&message, m_handle, 0, 0, PM_REMOVE)) {
 		DispatchMessageA(&message);
