@@ -83,7 +83,7 @@ public:
 	UINT GetWindowY() { return m_window_y; }
 	UINT GetWindowWidth() { return m_window_width; }
 	UINT GetWindowHeight() { return m_window_height; }
-	void SetCamera(float cx, float cy) { m_camera_x = cx; m_camera_y = cy; }
+	void SetCamera(float cx, float cy) { m_camera_x = cx - m_window_width / 2; m_camera_y = cy - m_window_height / 2; }
 	float GetCameraX() { return m_camera_x; }
 	float GetCameraY() { return m_camera_y; }
 

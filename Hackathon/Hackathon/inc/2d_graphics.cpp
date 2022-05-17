@@ -228,7 +228,7 @@ void Graphics::DrawAnimationFrame(Animation* animation, float delta_time, float 
 
 	m_render_target->DrawBitmap(
 		animation->sprite.bitmap,
-		D2D1::RectF(x, y, x + animation->sprite.width, y + animation->sprite.height),
+		D2D1::RectF(rel_x, rel_y, rel_x + animation->sprite.width, rel_y + animation->sprite.height),
 		opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
 		D2D1::RectF(src_x, 0, src_x + animation->src_frame_w, animation->src_frame_h)
 	);

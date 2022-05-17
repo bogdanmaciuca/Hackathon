@@ -146,6 +146,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\2d_graphics.h" />
+    <ClInclude Include="inc\input.h" />
+    <ClInclude Include="inc\player.h" />
     <ClInclude Include="inc\util.h" />
     <ClInclude Include="menu.h" />
   </ItemGroup>
