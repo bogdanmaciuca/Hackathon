@@ -1,2 +1,54 @@
-﻿  main.cpp
-  Hackathon.vcxproj -> D:\ProgrammingProjects\C++Projects\Hackathon\Debug\Hackathon.exe
+﻿  2d_graphics.cpp
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(133,29): warning C4244: '=': conversion from 'UINT32' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(134,30): warning C4244: '=': conversion from 'UINT32' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(151,37): warning C4244: '=': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(152,38): warning C4244: '=': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(166,62): warning C4244: '=': conversion from 'float' to 'UINT', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(167,63): warning C4244: '=': conversion from 'float' to 'UINT', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(170,37): warning C4244: '=': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(171,38): warning C4244: '=': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(197,45): warning C4244: 'argument': conversion from 'const UINT' to 'FLOAT', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(197,27): warning C4244: 'argument': conversion from 'const UINT' to 'FLOAT', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(211,14): warning C4244: 'initializing': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(226,66): warning C4244: 'argument': conversion from 'UINT' to 'FLOAT', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(245,14): warning C4244: 'initializing': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(246,14): warning C4244: 'initializing': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(339,20): warning C4018: '<': signed/unsigned mismatch
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(351,20): warning C4018: '<': signed/unsigned mismatch
+  main.cpp
+  Generating Code...
+libcpmtd.lib(xlocale.obj) : error LNK2001: unresolved external symbol __calloc_dbg
+2d_graphics.obj : error LNK2001: unresolved external symbol __calloc_dbg
+libcpmtd.lib(_tolower.obj) : error LNK2001: unresolved external symbol __calloc_dbg
+libcpmtd.lib(locale.obj) : error LNK2001: unresolved external symbol __calloc_dbg
+libcpmtd.lib(wlocale.obj) : error LNK2001: unresolved external symbol __calloc_dbg
+libcpmtd.lib(StlCompareStringA.obj) : error LNK2001: unresolved external symbol __free_dbg
+libcpmtd.lib(StlLCMapStringA.obj) : error LNK2001: unresolved external symbol __free_dbg
+libcpmtd.lib(wlocale.obj) : error LNK2001: unresolved external symbol __free_dbg
+libcpmtd.lib(xlocale.obj) : error LNK2001: unresolved external symbol __free_dbg
+libcpmtd.lib(xwcsxfrm.obj) : error LNK2001: unresolved external symbol __free_dbg
+2d_graphics.obj : error LNK2001: unresolved external symbol __free_dbg
+libcpmtd.lib(locale0.obj) : error LNK2001: unresolved external symbol __free_dbg
+libcpmtd.lib(cout.obj) : error LNK2001: unresolved external symbol __free_dbg
+libcpmtd.lib(locale.obj) : error LNK2001: unresolved external symbol __free_dbg
+libcpmtd.lib(StlCompareStringA.obj) : error LNK2001: unresolved external symbol __malloc_dbg
+libcpmtd.lib(StlLCMapStringA.obj) : error LNK2001: unresolved external symbol __malloc_dbg
+libcpmtd.lib(wlocale.obj) : error LNK2001: unresolved external symbol __malloc_dbg
+libcpmtd.lib(xlocale.obj) : error LNK2001: unresolved external symbol __malloc_dbg
+libcpmtd.lib(xwcsxfrm.obj) : error LNK2001: unresolved external symbol __malloc_dbg
+2d_graphics.obj : error LNK2001: unresolved external symbol __malloc_dbg
+libcpmtd.lib(locale0.obj) : error LNK2001: unresolved external symbol __malloc_dbg
+libcpmtd.lib(cout.obj) : error LNK2001: unresolved external symbol __malloc_dbg
+libcpmtd.lib(locale.obj) : error LNK2001: unresolved external symbol __malloc_dbg
+libcpmtd.lib(xlocale.obj) : error LNK2001: unresolved external symbol __CrtDbgReport
+2d_graphics.obj : error LNK2001: unresolved external symbol __CrtDbgReport
+libcpmtd.lib(cout.obj) : error LNK2001: unresolved external symbol __CrtDbgReport
+libcpmtd.lib(locale.obj) : error LNK2001: unresolved external symbol __CrtDbgReport
+libcpmtd.lib(wlocale.obj) : error LNK2001: unresolved external symbol __CrtDbgReport
+libcpmtd.lib(_tolower.obj) : error LNK2019: unresolved external symbol __wcsdup_dbg referenced in function __Getctype
+libcpmtd.lib(xstrcoll.obj) : error LNK2001: unresolved external symbol __wcsdup_dbg
+libcpmtd.lib(locale.obj) : error LNK2019: unresolved external symbol __realloc_dbg referenced in function "private: static void __cdecl std::locale::_Locimp::_Locimp_Addfac(class std::locale::_Locimp *,class std::locale::facet *,unsigned int)" (?_Locimp_Addfac@_Locimp@locale@std@@CAXPAV123@PAVfacet@23@I@Z)
+libcpmtd.lib(StlLCMapStringA.obj) : error LNK2019: unresolved external symbol __CrtDbgReportW referenced in function __freea_crt
+libcpmtd.lib(xmbtowc.obj) : error LNK2001: unresolved external symbol __CrtDbgReportW
+libcpmtd.lib(StlCompareStringA.obj) : error LNK2001: unresolved external symbol __CrtDbgReportW
+D:\ProgrammingProjects\C++Projects\Hackathon\Debug\Hackathon.exe : fatal error LNK1120: 7 unresolved externals
