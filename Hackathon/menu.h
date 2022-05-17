@@ -105,7 +105,7 @@ char DrawMenu(Graphics* gfx) {
 		else if (!input.GetKeyDown(VK_UP))
 			up_up = 1;
 
-		if (input.GetKeyDown(VK_RETURN)&&up_enter)
+		if (input.GetKeyDown(VK_RETURN) && up_enter)
 		{
 			if (nrmeniu == 0)
 				if (pos == 1)
@@ -120,7 +120,7 @@ char DrawMenu(Graphics* gfx) {
 			}
 			up_enter = 0;
 		}
-		else if(!input.GetKeyDown(VK_RETURN))
+		else if (!input.GetKeyDown(VK_RETURN))
 			up_enter = 1;
 
 		if (result)

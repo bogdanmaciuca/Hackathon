@@ -32,7 +32,7 @@
     <ClInclude Include="inc\util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\player.h">
+    <ClInclude Include="player.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\input.h">

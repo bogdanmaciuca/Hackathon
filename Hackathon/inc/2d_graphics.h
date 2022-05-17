@@ -57,6 +57,7 @@ public:
 	class TextFormat {
 	public:
 		IDWriteTextFormat* dwrite_component;
+		void SetAlignment(const DWRITE_TEXT_ALIGNMENT& alignment) { dwrite_component->SetTextAlignment(alignment); }
 		~TextFormat() { SafeRelease(&dwrite_component); }
 	};
 private:
@@ -98,11 +99,11 @@ public:
 	void BeginFrame();
 	void EndFrame();
 	// Sprites
-	void DrawSprite(const Sprite& sprite, float x, float y, float angle = 0.0f, float opacity = 1.0f);
+	void DrawSprite(const Sprite& sprite, float x, float y, bool flip = 0, float angle = 0.0f, float opacity = 1.0f);
 	bool LoadSprite(const wchar_t* filename, Sprite* sprite); // Returns 0 on failure
 	// Animations
 	void LoadAnimation(const wchar_t* filename, Animation* animation, float time_per_frame, char frame_num);
-	void DrawAnimationFrame(Animation* animation, float delta_time, float x, float y, float angle = 0.0f, float opacity = 1.0f);
+	void DrawAnimationFrame(Animation* animation, float delta_time, float x, float y, bool flip = 0, float angle = 0.0f, float opacity = 1.0f);
 	// Complex animations
 	void LoadComplexAnim(const wchar_t* filename, ComplexAnimation* animation, float time_per_frame, char state_num, char* frame_num_arr);
 	void SetComplexAnimState(ComplexAnimation* c_anim, char state);

@@ -1,75 +1,115 @@
+#pragma once
+
+#define DIRECTION_LEFT  0
+#define DIRECTION_RIGHT 1
 
 class Player {
 private:
-	float m_x = 0, m_y = 0.f;
+	float m_x = 0, m_y = 0;
 	Graphics* gfx;
-	Graphics::Animation m_animation;
-	const int contr = 69;
-	float m_velo_x = 0, m_velo_y= 0 ;
-	float m_timejump = 21, grav = 0.1f, jumpforce = -4.0f, adjustjump = 75.0f;
+	char m_anim_frame_num_arr[6] = { 8, 12, 1, 8, 12, 1 };
+	Graphics::ComplexAnimation m_animation;
+	float m_velo_x = 0, m_velo_y = 0;
+	float m_timejump = 21, grav = 0.25f, jumpforce = -7.0f, adjustjump = 35.0f;
+	float m_max_horiz_vel = 5.0f;
+	float accel = 0.08f;
+	float decel = 0.1f;
+	bool direction = DIRECTION_RIGHT;
+	bool ground = 0;
 public:
 	float GetX() { return m_x; }
 	float GetY() { return m_y; }
+	void Reset() {
+		m_x = 0, m_y = -m_animation.sprite.height * 2;
+		m_velo_x = 0, m_velo_y = 0;
+	}
 	Player(Graphics* graphics) {
 		gfx = graphics;
-		gfx->LoadAnimation(L"res/player_anim.png", &m_animation, 100.0f, 8);
-		m_animation.sprite.width = 69;
-		m_animation.sprite.height = 69;
-		m_y = -m_animation.sprite.height * 2;
+		gfx->LoadComplexAnim(L"res/player_anim.png", &m_animation, 100.0f, 6, m_anim_frame_num_arr);
+		//gfx->SetComplexAnimState(&m_animation, 0);
+		m_animation.sprite.width = PLAYER_WIDTH;
+		m_animation.sprite.height = PLAYER_HEIGHT;
+		Reset();
 	}
 	void UpdateInput(Input* input) {
-		if (input->GetKeyDown('A'))
-			m_velo_x -= 0.03f;
-		if (input->GetKeyDown('D')) m_velo_x += 0.03f;
+		if (input->GetKeyDown('A')) m_velo_x -= accel;
+		else if (input->GetKeyDown('D')) m_velo_x += accel;
 		if (!input->GetKeyDown('A') && !input->GetKeyDown('D'))
 		{
-			if(m_velo_x>0)
-				m_velo_x -= 0.03f;
+			if (m_velo_x > 0)
+				m_velo_x -= decel;
 			else
-				m_velo_x += 0.03f;
+				m_velo_x += decel;
 		}
-		if (m_velo_x <= -2)
-			m_velo_x = -2;
-		if (m_velo_x >= 2)
-			m_velo_x = 2;
-		
+		if (m_velo_x <= -m_max_horiz_vel)
+			m_velo_x = -m_max_horiz_vel;
+		if (m_velo_x >= m_max_horiz_vel)
+			m_velo_x = m_max_horiz_vel;
 	}
 	void UpdateGravity(const std::vector<Platform>& platforms, Input* input, float deltaTime) {
-		/// !!!! Delta time
-		bool colision = 0, ground = 0;
+		bool colision = 0;
+		ground = 0;
 		int i;
-		for (i = 0; i < 1024 && !colision; i++)
-		{
-			if (m_x < platforms[i].x + platforms[i].length * contr &&
-				m_x + contr > platforms[i].x &&
-				m_y < platforms[i].y + contr &&
-				(contr + m_y > platforms[i].y || contr + m_y + m_velo_y > platforms[i].y))
+		for (i = 0; i < 10 && !colision; i++) {
+			if (m_x < platforms[i].x + platforms[i].length * PLAYER_WIDTH &&
+				m_x + PLAYER_WIDTH > platforms[i].x &&
+				m_y < platforms[i].y + PLAYER_WIDTH &&
+				(PLAYER_WIDTH + m_y > platforms[i].y || PLAYER_WIDTH + m_y + m_velo_y > platforms[i].y))
+			{
 				colision = 1;
+			}
 		}
 		i--;
-			if (colision && (contr + m_y > platforms[i].y+ 2.0f))
-				 ground = 0;
-			else if(colision)
-				ground = 1;	
-					
-			if (ground)
-			{
-				m_velo_y = 0;
-				if (input->GetKeyPressed(VK_SPACE))
-				{
-					m_velo_y = jumpforce;
-					m_timejump = 0;
-					ground = false;
-				}
+
+		if (colision && (PLAYER_WIDTH + m_y > platforms[i].y + 2.0f)) ground = 0;
+		else if (colision) ground = 1;
+
+		if (ground) {
+			m_velo_y = 0;
+			if (input->GetKeyPressed(VK_SPACE)) {
+				m_velo_y = jumpforce;
+				m_timejump = 0;
+				ground = false;
 			}
-			else if (!(input->GetKeyDown(VK_SPACE) && m_timejump < 3))		
-				m_velo_y += grav;			
-			else
-				m_timejump += deltaTime/adjustjump;
-		m_x += m_velo_x*deltaTime / 7.5;
+		}
+		else if (!(input->GetKeyDown(VK_SPACE) && m_timejump < 3)) m_velo_y += grav;
+		else m_timejump += deltaTime / adjustjump;
+		
+		m_x += m_velo_x * deltaTime / 7.5;
 		m_y += m_velo_y * deltaTime / 7.5;
 	}
+	void UpdateAnimationState() {
+		if (!ground) { // Jumping
+			if (m_velo_x < 0) {
+				gfx->SetComplexAnimState(&m_animation, 5);
+				direction = DIRECTION_LEFT;
+			}
+			else {
+				gfx->SetComplexAnimState(&m_animation, 2);
+				direction = DIRECTION_RIGHT;
+			}
+		}
+		else {
+			if (abs(m_velo_x) < m_max_horiz_vel / 10.0f) { // Idle
+				if (direction == DIRECTION_LEFT)
+					gfx->SetComplexAnimState(&m_animation, 4);
+				else
+					gfx->SetComplexAnimState(&m_animation, 1);
+			}
+			else { // Runnning
+				if (m_velo_x < 0) {
+					gfx->SetComplexAnimState(&m_animation, 3);
+					direction = DIRECTION_LEFT;
+				}
+				else {
+					gfx->SetComplexAnimState(&m_animation, 0);
+					direction = DIRECTION_RIGHT;
+				}
+				}
+		}
+		//gfx->SetComplexAnimState(&m_animation, 0);
+	}
 	void Draw(const float& delta_time) {
-		gfx->DrawAnimationFrame(&m_animation, delta_time, m_x, m_y);
+		gfx->DrawComplexAnimFrame(&m_animation, delta_time, m_x, m_y);
 	}
 };

@@ -187,7 +187,7 @@ void Graphics::EndFrame() {
 	m_render_target->EndDraw();
 }
 
-void Graphics::DrawSprite(const Sprite& sprite, float x, float y, float angle, float opacity) {
+void Graphics::DrawSprite(const Sprite& sprite, float x, float y, bool flip, float angle, float opacity) {
 	// Getting screen coordinates from absolute coordinates
 	float rel_x = x - m_camera_x, rel_y = y - m_camera_y;
 
@@ -195,17 +195,17 @@ void Graphics::DrawSprite(const Sprite& sprite, float x, float y, float angle, f
 	D2D1_POINT_2F center;
 	center.x = rel_x + sprite.width / 2;
 	center.y = rel_y + sprite.height / 2;
-	m_render_target->SetTransform(D2D1::Matrix3x2F::Rotation(angle, center));
+	m_render_target->SetTransform(D2D1::Matrix3x2F::Rotation(angle, center) * (flip ? D2D1::Matrix3x2F(-1, 0, 0, 1, 0, 0) : D2D1::IdentityMatrix()));
 
 	m_render_target->DrawBitmap(
 		sprite.bitmap,
 		D2D1::RectF(rel_x, rel_y, rel_x + sprite.width, rel_y + sprite.height),
-		opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
+		opacity, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
 		D2D1::RectF(0, 0, sprite.src_width, sprite.src_height)
 	);
 }
 
-void Graphics::DrawAnimationFrame(Animation* animation, float delta_time, float x, float y, float angle, float opacity) {
+void Graphics::DrawAnimationFrame(Animation* animation, float delta_time, float x, float y, bool flip, float angle, float opacity) {
 	// Handling the frame index
 	animation->curr_time += delta_time;
 	if (animation->curr_time > animation->time_per_frame) {
@@ -224,20 +224,22 @@ void Graphics::DrawAnimationFrame(Animation* animation, float delta_time, float 
 	D2D1_POINT_2F center;
 	center.x = rel_x + animation->sprite.width / 2;
 	center.y = rel_y + animation->sprite.height / 2;
-	m_render_target->SetTransform(D2D1::Matrix3x2F::Rotation(angle, center));
+	m_render_target->SetTransform(D2D1::Matrix3x2F::Rotation(angle, center) * (flip ? D2D1::Matrix3x2F(-1, 0, 0, 1, 0, 0) : D2D1::IdentityMatrix()));
 
 	m_render_target->DrawBitmap(
 		animation->sprite.bitmap,
 		D2D1::RectF(rel_x, rel_y, rel_x + animation->sprite.width, rel_y + animation->sprite.height),
-		opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
+		opacity, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
 		D2D1::RectF(src_x, 0, src_x + animation->src_frame_w, animation->src_frame_h)
 	);
 }
 
 void Graphics::SetComplexAnimState(ComplexAnimation* c_anim, char state) {
-	c_anim->state = state;
-	c_anim->index = 0;
-	c_anim->curr_time = 0.0f;
+	if (c_anim->state != state) {
+		c_anim->state = state;
+		c_anim->index = 0;
+		c_anim->curr_time = 0.0f;
+	}
 }
 
 void Graphics::DrawComplexAnimFrame(ComplexAnimation* c_anim, float delta_time, float x, float y, float angle, float opacity) {
@@ -248,7 +250,7 @@ void Graphics::DrawComplexAnimFrame(ComplexAnimation* c_anim, float delta_time, 
 		c_anim->curr_time = 0;
 	}
 	if (c_anim->index >= c_anim->frame_num_arr[c_anim->state]) c_anim->index = 0;
-
+	
 	float src_x = c_anim->index * c_anim->src_frame_w;
 	float src_y = c_anim->state * c_anim->src_frame_h;
 
@@ -263,8 +265,8 @@ void Graphics::DrawComplexAnimFrame(ComplexAnimation* c_anim, float delta_time, 
 
 	m_render_target->DrawBitmap(
 		c_anim->sprite.bitmap,
-		D2D1::RectF(x, y, x + c_anim->sprite.width, y + c_anim->sprite.height),
-		opacity, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
+		D2D1::RectF(rel_x, rel_y, rel_x + c_anim->sprite.width, rel_y + c_anim->sprite.height),
+		opacity, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
 		D2D1::RectF(src_x, src_y, src_x + c_anim->src_frame_w, src_y + c_anim->src_frame_h)
 	);
 }
