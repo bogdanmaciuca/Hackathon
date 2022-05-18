@@ -3,21 +3,40 @@
 #define PLAYER_HEIGHT 69
 #define PLATFORM_NUM_ON_SCR 10
 
+enum {
+	MODE_NORMAL,
+	MODE_RANDOM_JUMP,
+	MODE_NO_LEFT,
+	MODE_BUNNYHOP,
+	MODE_WIND,
+	MODE_GLIDING,
+	MODE_BIG_JUMPS,
+	MODE_SPEED,
+	MODE_SLIPPERY
+};
 
-#include "inc/util.h"
+#include <chrono>
+#include <vector>
+#include <random>
+#include <string>
+#include <fstream>
+#include "inc/2d_graphics.h"
+#include "inc/input.h"
 #include "menu.h"
+#include "platforms.h"
 #include "player.h"
 
 #pragma comment(lib, "d2d1")
 #pragma comment(lib, "dwrite")
 #pragma comment(lib, "windowscodecs")
 #pragma comment(lib, "ole32")
+#pragma comment(lib, "winmm")
 
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, int cli_args_num) {
 	UINT highscore = 0;
 	// Loading high score
 	std::fstream file;
-	file.open("res/highscore.hs", std::ios::in);
+	file.open("res/highscore.hs");
 	file >> highscore;
 	file.close();
 
@@ -43,9 +62,8 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 	gfx.CreateTextFormat(L"Arial", 40.0f, &text_format, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL);
 	float black[] = { 0, 0, 0, 1 };
 	float white[] = { 1, 1, 1, 1 };
-	PlatformGenerator platform_gen;
-	std::vector<Platform> platforms;
-	platform_gen.GeneratePlatforms(&platforms);
+	
+	PlatformManager platforms(&gfx, &platform);
 
 	char mode = MODE_RANDOM_JUMP;
 	Player p(&gfx, &mode);
@@ -74,38 +92,38 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 		if (input.GetKeyPressed(VK_ESCAPE)) {
 			float last_camera_x = gfx.GetCameraX(), last_camera_y = gfx.GetCameraY();
 			gfx.SetCamera(gfx.GetWindowWidth() / 2, gfx.GetWindowHeight() / 2);
-			switch (DrawMenu(&gfx)) {
-			case 1: // Resume
+			//switch (DrawMenu(&gfx)) {
+			//case 1: // Resume
 				ignore_next_delta_time = 1;
-				break;
-			case 2:
+			//	break;
+			//case 2:
 				// Restart
 				if (score > highscore) highscore = score;
-				file.open("highscore.hs", std::ios::out);
+				file.open("res/highscore.hs", std::ios::out);
 				file << highscore;
 				file.close();
-				platform_gen.GeneratePlatforms(&platforms);
+				platforms.GeneratePlatforms();
 				p.Reset();
 				score = 0;
-				break;
-			default:
-				break;
-			}
+			//	break;
+			//default:
+			//	break;
+			//}
 			gfx.SetCamera(last_camera_x, last_camera_y);
 
 		}
-		p.UpdateInput(&input);
-		//p.UpdateGravity(platforms, &input, delta_time);
+		p.UpdateInput(&input, mode == MODE_NO_LEFT);
+		p.UpdateGravity(platforms.GetPlatformVec(), &input, delta_time, mode == MODE_RANDOM_JUMP);
 		p.UpdateAnimationState();
 		if (p.GetX() / 20 > score) score = p.GetX() / 20;
 
 		if (p.GetY() > 1000.0f) {
 			// Restart
 			if (score > highscore) highscore = score;
-			file.open("highscore.hs", std::ios::out);
+			file.open("res/highscore.hs", std::ios::out);
 			file << highscore;
 			file.close();
-			platform_gen.GeneratePlatforms(&platforms);
+			platforms.GeneratePlatforms();
 			p.Reset();
 			score = 0;
 		}
@@ -126,11 +144,21 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 			jump_mode_rad = jump_mode_curr_time / jump_mode_time * 100;
 			jump_mode_curr_time += delta_time;
 		} break;
-			//case MODE_NO_LEFT
-			//case MODE_BUNNYHOP
-			//case MODE_WIND
-			//case MODE_RANDOM_DASH
-			//case MODE_BIG_JUMPS
+		case MODE_NO_LEFT: // Done in player input function
+			p.SetNoLeftStats();
+			break;
+		case MODE_BUNNYHOP:
+			p.SetBunnyhopStats();
+			p.Jump();
+			break;
+		case MODE_WIND:
+			break;
+		case MODE_GLIDING:
+			p.SetGlidingStats();
+			break;
+		case MODE_BIG_JUMPS:
+			p.SetBigJumpsStats();
+			break;
 			//case MODE_SPEED
 		case MODE_SLIPPERY:
 			p.SetSlipperyStats();
@@ -138,28 +166,19 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 		default:
 			break;
 		}
-		p.UpdateGravity(platforms, &input, delta_time);
-
 
 		input.Update();
 		gfx.HandleMessages();
 		gfx.SetCamera(p.GetX(), p.GetY());
 		gfx.BeginFrame();
 		gfx.DrawSprite(background, p.GetX() - gfx.GetWindowWidth() / 2, p.GetY() - gfx.GetWindowHeight() / 2);
-		for (int i = 0; i < 10; i++) {
-			// If a platform is out of screent (left) erase it and push a new one
-			if (platforms[i].x + platforms[i].length * platform.width < p.GetX() - gfx.GetWindowWidth() / 2) {
-				platform_gen.ReplaceOldPlatform(&platforms, i--);
-			}
-			for (int j = 0; j < platforms[i].length; j++) {
-				gfx.DrawSprite(platform, platforms[i].x + j * platform.width, platforms[i].y);
-			}
-		}
+		
 		p.Draw(delta_time);
 		auto wstr = std::to_wstring(score) + L"\n" + std::to_wstring(highscore);
 		text_format.SetAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
 		gfx.DrawText(wstr.c_str(), wstr.size(), text_format, 600, 0, 200, 200, black);
 		text_format.SetAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		platforms.Draw(p.GetX() - gfx.GetWindowWidth() / 2);
 		if (mode == MODE_RANDOM_JUMP) {
 			gfx.DrawEllipse(700, 500, 100, 100, white);
 			gfx.DrawEllipse(700, 500, jump_mode_rad, jump_mode_rad, white, 0, 1);

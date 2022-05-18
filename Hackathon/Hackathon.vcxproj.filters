@@ -38,5 +38,8 @@
     <ClInclude Include="inc\input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="platforms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

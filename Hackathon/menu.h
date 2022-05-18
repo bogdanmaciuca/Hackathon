@@ -33,12 +33,12 @@ void col_rect(Graphics* gfx, int n, int l, int w, int w_opt)
 			gfx->DrawRect(x1 + 30, posi, l - 60, w_opt, green, 0, true);
 		else
 			gfx->DrawRect(x1 + 30, posi, l - 60, w_opt, gray, 0, true);
-		gfx->DrawText(denumiri[i - 1].nume, denumiri[i - 1].nr, text_format, x1 + 220- denumiri[i - 1].nr *6, posi + w_opt / 7, l - 60, w_opt, black);
+		gfx->DrawText(denumiri[i - 1].nume, denumiri[i - 1].nr, text_format, x1 + 220 - denumiri[i - 1].nr * 6, posi + w_opt / 7, l - 60, w_opt, black);
 		posi += liber + w_opt;
 	}
 }
 
-void meniu_schimb(int& nrbuton, int& w_opt, int& h)
+void meniu_schimb(int& nrbuton, int& w_opt, int& h, bool dif, bool mus)
 {
 	char text[30];
 	if (nrmeniu == 0) {
@@ -69,14 +69,28 @@ void meniu_schimb(int& nrbuton, int& w_opt, int& h)
 		size_t outSize;
 		w_opt = 75;
 
-		strcpy_s(text, "Difficulty: 1");
-		mbstowcs_s(&outSize, denumiri[0].nume, text, 13);
-		denumiri[0].nr = 13;
+		if (!dif) {
+			strcpy_s(text, "Difficulty: 1");
+			mbstowcs_s(&outSize, denumiri[0].nume, text, 13);
+			denumiri[0].nr = 13;
+		}
+		else {
+			strcpy_s(text, "Difficulty: 2");
+			mbstowcs_s(&outSize, denumiri[0].nume, text, 13);
+			denumiri[0].nr = 13;
+		}
 
-		strcpy_s(text, "Music: On");
-		mbstowcs_s(&outSize, denumiri[1].nume, text, 9);
-		denumiri[1].nr = 9;
 
+		if (!dif) {
+			strcpy_s(text, "Music: On");
+			mbstowcs_s(&outSize, denumiri[1].nume, text, 9);
+			denumiri[1].nr = 9;
+		}
+		else {
+			strcpy_s(text, "Music: Off");
+			mbstowcs_s(&outSize, denumiri[1].nume, text, 10);
+			denumiri[1].nr = 10;
+		}
 		strcpy_s(text, "Exit");
 		mbstowcs_s(&outSize, denumiri[2].nume, text, 4);
 		denumiri[2].nr = 4;
@@ -84,7 +98,14 @@ void meniu_schimb(int& nrbuton, int& w_opt, int& h)
 	}
 }
 
-char DrawMenu(Graphics* gfx) {
+struct MenuResults {
+	bool music;
+	bool difficulty;
+	bool restart;
+	bool exit;
+};
+
+MenuResults DrawMenu(Graphics* gfx, bool init_difficulty, bool init_music) {
 	Graphics::Sprite background;
 	gfx->LoadSprite(L"res/background.png", &background);
 	background.width = gfx->GetWindowWidth();
@@ -92,8 +113,9 @@ char DrawMenu(Graphics* gfx) {
 	gfx->CreateTextFormat(L"Arial", 40.0f, &text_format);
 	int h = 400;
 	int nrbutoane = 3, w_but;
-	int result = 0;
-	meniu_schimb(nrbutoane, w_but, h);
+	bool difficulty = init_difficulty, on_music = init_music;
+	MenuResults result = {};
+	meniu_schimb(nrbutoane, w_but, h, init_difficulty, init_music);
 	while (1) {
 		Input input;
 		input.Update(gfx->GetWindowX(), gfx->GetWindowY());
@@ -128,48 +150,69 @@ char DrawMenu(Graphics* gfx) {
 				if (pos == 1)
 					return result;
 				else if (pos == 2)
-					return result +100;
+				{
+					result.restart = true;
+					return result;
+				}
 				else if (pos == 3) {
 					nrmeniu++;
-					meniu_schimb(nrbutoane, w_but, h);
+					meniu_schimb(nrbutoane, w_but, h, difficulty, on_music);
 				}
 				else
-					return 3;
+				{
+					result.exit = true;
+					return result;
+				}
 			else {
 				if (pos == 1) {
-
-					if(result%10==0){
+					if (!difficulty) {
 						char txt[20];
 						strcpy_s(txt, "Difficulty: 2");
-						change_but(0,txt, 13);
-						result++;
+						change_but(0, txt, 13);
+						difficulty = 1;
+						if (difficulty != init_difficulty)
+							result.difficulty = 1;
+						else
+							result.difficulty = 0;
 					}
-					else if(result % 10 == 1) {
+					else {
 						char txt[20];
 						strcpy_s(txt, "Difficulty: 1");
 						change_but(0, txt, 13);
-						result--;
+						difficulty = 0;
+						if (difficulty != init_difficulty)
+							result.difficulty = 1;
+						else
+							result.difficulty = 0;
 					}
 				}
 				if (pos == 2) {
 
-					if (result / 10 == 0) {
+					if (on_music) {
 						char txt[20];
 						strcpy_s(txt, "Music: Off");
-						change_but(1, txt, 10);
-						result +=10;
+						change_but(0, txt, 10);
+						on_music = 0;
+						if (on_music != init_music)
+							result.music = 1;
+						else
+							result.difficulty = 0;
 					}
-					else if (result / 10 == 1) {
+					else {
 						char txt[20];
 						strcpy_s(txt, "Music: On");
-						change_but(1, txt, 9);
-						result -=10;
+						change_but(0, txt, 9);
+						on_music = 0;
+						if (on_music != init_music)
+							result.music = 1;
+						else
+							result.difficulty = 0;
 					}
-				}					
+				}
 				else
 					if (pos == 3) {
 						nrmeniu--;
-						meniu_schimb(nrbutoane, w_but, h);
+						meniu_schimb(nrbutoane, w_but, h, difficulty, on_music);
 					}
 			}
 			up_enter = 0;

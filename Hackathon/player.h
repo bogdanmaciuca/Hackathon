@@ -1,6 +1,6 @@
 #pragma once
 
-#define DIRECTION_LEFT  0
+#define DIRECTION_LEFT 0
 #define DIRECTION_RIGHT 1
 
 class Player {
@@ -10,34 +10,62 @@ private:
 	char* mode;
 	char m_anim_frame_num_arr[6] = { 8, 12, 1, 8, 12, 1 };
 	Graphics::ComplexAnimation m_animation;
-	float m_velo_x = 0, m_velo_y = 0;
+	float m_velocity_x = 0, m_velocity_y = 0;
+	float m_jump_velocity = -1.0f;
+	bool m_holding_jump = 0;
+	float m_hold_jump_timer = 0.0f;
+	float m_max_hold_jump_time = 300.0f;
+	float m_gravity = .01f;
+	bool m_ground = 0;
+	bool m_aux_jump_cmd = 0;
+
 	float m_timejump = 21, grav = 0.25f, jumpforce = -7.0f, adjustjump = 35.0f;
 	float m_max_horiz_vel = 5.0f;
-	float accel = 0.08f;
-	float decel = 0.1f;
-	bool direction = DIRECTION_RIGHT;
-	bool ground = 0;
-	bool aux_jump_cmd = 0;
+	float m_accel = 0.08f;
+	float m_decel = 0.1f;
+	bool m_direction = DIRECTION_RIGHT;
 public:
 	float GetX() { return m_x; }
 	float GetY() { return m_y; }
 	void Reset() {
 		m_x = 0, m_y = -m_animation.sprite.height * 2;
-		m_velo_x = 0, m_velo_y = 0;
+		m_velocity_x = 0, m_velocity_y = 0;
 	}
 	void SetNormalStats() {
 		m_timejump = 21, grav = 0.25f, jumpforce = -7.0f, adjustjump = 35.0f;
 		m_max_horiz_vel = 5.0f;
-		accel = 0.08f;
-		decel = 0.1f;
+		m_accel = 0.08f;
+		m_decel = 0.1f;
 	}
 	void SetSlipperyStats() {
-		accel = 0.01f;
-		decel = 0.005f;
+		SetNormalStats();
+		m_accel = 0.01f;
+		m_decel = 0.005f;
 	}
 	void SetRandomJumpStats() {
 		SetNormalStats();
 		jumpforce = -10.0f;
+	}
+	void SetBunnyhopStats() {
+		SetNormalStats();
+		jumpforce = -10.0f;
+		m_accel = 0.16f;
+		m_decel = 0.15f;
+	}
+	void SetNoLeftStats() {
+		SetNormalStats();
+		jumpforce = -10.0f;
+		m_decel = 0.05f;
+	}
+	void SetBigJumpsStats() {
+		SetNormalStats();
+		grav = 0.125f;
+		jumpforce = -10.0f;
+	}
+	void SetGlidingStats() {
+		SetNormalStats();
+		//m_timejump = 21.0f;
+		//adjustjump = 100.0f;
 	}
 	Player(Graphics* graphics, char* _mode) {
 		gfx = graphics;
@@ -49,84 +77,98 @@ public:
 		Reset();
 	}
 	void Jump() { // "You gotta' jump!"
-		aux_jump_cmd = 1;
+		m_aux_jump_cmd = 1;
 	}
-	void UpdateInput(Input* input) {
-		if (input->GetKeyDown('A')) m_velo_x -= accel;
-		else if (input->GetKeyDown('D')) m_velo_x += accel;
-		if (!input->GetKeyDown('A') && !input->GetKeyDown('D'))
+	void UpdateInput(Input* input, bool no_left = 0) {
+		if (!no_left && input->GetKeyDown('A')) m_velocity_x -= m_accel;
+		else if (input->GetKeyDown('D')) m_velocity_x += m_accel;
+		if (!(!no_left && input->GetKeyDown('A')) && !input->GetKeyDown('D'))
 		{
-			if (m_velo_x > 0)
-				m_velo_x -= decel;
+			if (m_velocity_x > 0)
+				m_velocity_x -= m_decel;
 			else
-				m_velo_x += decel;
+				m_velocity_x += m_decel;
 		}
-		if (m_velo_x <= -m_max_horiz_vel)
-			m_velo_x = -m_max_horiz_vel;
-		if (m_velo_x >= m_max_horiz_vel)
-			m_velo_x = m_max_horiz_vel;
+		if (m_velocity_x <= -m_max_horiz_vel)
+			m_velocity_x = -m_max_horiz_vel;
+		if (m_velocity_x >= m_max_horiz_vel)
+			m_velocity_x = m_max_horiz_vel;
 	}
-	void UpdateGravity(const std::vector<Platform>& platforms, Input* input, float deltaTime) {
+	void UpdateGravity(const std::vector<Platform>& platforms, Input* input, float delta_time, bool random_jump) {
 		bool colision = 0;
-		ground = 0;
+		//m_ground= 0;
+
+		float ground_height = 2000.0f;
 		int i;
-		for (i = 0; i < 10 && !colision; i++) {
+		for (i = 0; i < PLATFORM_NUM_ON_SCR && !colision; i++) {
 			if (m_x < platforms[i].x + platforms[i].length * PLAYER_WIDTH &&
-				m_x + PLAYER_WIDTH > platforms[i].x &&
-				m_y < platforms[i].y + PLAYER_WIDTH &&
-				(PLAYER_WIDTH + m_y > platforms[i].y || PLAYER_WIDTH + m_y + m_velo_y > platforms[i].y))
+				m_x + PLAYER_WIDTH > platforms[i].x)
 			{
 				colision = 1;
+				ground_height = platforms[i].y;
 			}
 		}
+		if (ground_height == 2000.0f) m_ground = 0;
 		i--;
 
-		if (colision && (PLAYER_WIDTH + m_y > platforms[i].y + 2.0f)) ground = 0;
-		else if (colision) ground = 1;
-		
-		if (ground) {
-			m_velo_y = 0;
-			if (aux_jump_cmd || (*mode != MODE_RANDOM_JUMP && input->GetKeyPressed(VK_SPACE))) {
-				m_velo_y = jumpforce;
-				m_timejump = 0;
-				ground = false;
-				aux_jump_cmd = 0;
+		if (m_ground) {
+			if (m_aux_jump_cmd || (!random_jump && input->GetKeyPressed(VK_SPACE))) {
+				m_ground = 0;
+				m_velocity_y = m_jump_velocity;
+				m_holding_jump = 1;
+				m_hold_jump_timer = 0.0f;
+				m_aux_jump_cmd = 0;
 			}
 		}
-		else if (!(input->GetKeyDown(VK_SPACE) && m_timejump < 3))
-			m_velo_y += grav;
-		else
-			m_timejump += deltaTime / adjustjump;
-		
-		m_x += m_velo_x * deltaTime / 7.5;
-		m_y += m_velo_y * deltaTime / 7.5;
+		if (input->GetKeyReleased(VK_SPACE)) {
+			m_holding_jump = 0;
+		}
+
+		if (!m_ground) {
+			if (m_holding_jump) {
+				m_hold_jump_timer += delta_time;
+				if (m_hold_jump_timer >= m_max_hold_jump_time) {
+					m_holding_jump = 0;
+				}
+			}
+			m_y += m_velocity_y * delta_time;
+			if (!m_holding_jump) {
+				m_velocity_y += m_gravity * delta_time;
+			}
+			if (m_y >= ground_height - PLAYER_HEIGHT) {
+				m_y = ground_height - PLAYER_HEIGHT;
+				m_ground = 1;
+			}
+		}
+
+		m_x += m_velocity_x * delta_time / 7.5;
 	}
 	void UpdateAnimationState() {
-		if (!ground) { // Jumping
-			if (m_velo_x < 0) {
+		if (!m_ground) { // Jumping
+			if (m_velocity_x < 0) {
 				gfx->SetComplexAnimState(&m_animation, 5);
-				direction = DIRECTION_LEFT;
+				m_direction = DIRECTION_RIGHT;
 			}
 			else {
 				gfx->SetComplexAnimState(&m_animation, 2);
-				direction = DIRECTION_RIGHT;
+				m_direction = DIRECTION_RIGHT;
 			}
 		}
 		else {
-			if (abs(m_velo_x) < m_max_horiz_vel / 10.0f) { // Idle
-				if (direction == DIRECTION_LEFT)
+			if (abs(m_velocity_x) < m_max_horiz_vel / 10.0f) { // Idle
+				if (m_direction == DIRECTION_LEFT)
 					gfx->SetComplexAnimState(&m_animation, 4);
 				else
 					gfx->SetComplexAnimState(&m_animation, 1);
 			}
 			else { // Runnning
-				if (m_velo_x < 0) {
+				if (m_velocity_x < 0) {
 					gfx->SetComplexAnimState(&m_animation, 3);
-					direction = DIRECTION_LEFT;
+					m_direction = DIRECTION_LEFT;
 				}
 				else {
 					gfx->SetComplexAnimState(&m_animation, 0);
-					direction = DIRECTION_RIGHT;
+					m_direction = DIRECTION_RIGHT;
 				}
 			}
 		}
