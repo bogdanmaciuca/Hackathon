@@ -18,17 +18,22 @@ class Input {
 private:
 	Button m_keys[MAX_KEYS];
 	Cursor m_cursor;
+	bool any_key;
 public:
 	Input() {
 		ZeroMemory(m_keys, MAX_KEYS * sizeof(Button));
 	}
 	void Update(int window_x = 0, int window_y = 0) {
 		// Buttons
+		any_key = 0;
 		for (int i = 0; i < MAX_KEYS; i++) {
 			m_keys[i].pressed = 0;
 			m_keys[i].released = 0;
 			if (GetAsyncKeyState(i)) {
-				if (!m_keys[i].down) m_keys[i].pressed = 1;
+				if (!m_keys[i].down) {
+					m_keys[i].pressed = 1;
+					any_key = 1;
+				}
 				m_keys[i].down = 1;
 			}
 			else {
@@ -46,6 +51,7 @@ public:
 	bool GetKeyDown(char key) { return m_keys[key].down; }
 	bool GetKeyPressed(char key) { return m_keys[key].pressed; }
 	bool GetKeyReleased(char key) { return m_keys[key].released; }
+	bool AnyKeyPressed() { return any_key; };
 	int GetCursorX() { return m_cursor.x; };
 	int GetCursorY() { return m_cursor.y; };
 };
