@@ -3,6 +3,7 @@
 Graphics::TextFormat text_format;
 float gray[] = { 0.8,0.8,0.8,1 }, darkgray[] = { 0.5,0.5,0.5,1 }, green[] = { 0,1,0,1 }, black[] = { 0,0,0,1 };
 int pos = 1, nrmeniu = 0;
+
 struct Opt
 {
 	wchar_t nume[20];
@@ -10,6 +11,13 @@ struct Opt
 };
 Opt denumiri[6];
 bool up_up = 1, up_down = 1, up_enter = 1;
+
+void change_but(int i, char denum[], int len)
+{
+	size_t outsize;
+	mbstowcs_s(&outsize, denumiri[i].nume, denum, len);
+	denumiri[i].nr = len;
+}
 
 void col_rect(Graphics* gfx, int n, int l, int w, int w_opt)
 {
@@ -25,72 +33,79 @@ void col_rect(Graphics* gfx, int n, int l, int w, int w_opt)
 			gfx->DrawRect(x1 + 30, posi, l - 60, w_opt, green, 0, true);
 		else
 			gfx->DrawRect(x1 + 30, posi, l - 60, w_opt, gray, 0, true);
-		gfx->DrawText(denumiri[i - 1].nume, denumiri[i - 1].nr, text_format, x1 + 250 - denumiri[i - 1].nr * 11, posi + w_opt / 7, l - 60, w_opt, black);
+		gfx->DrawText(denumiri[i - 1].nume, denumiri[i - 1].nr, text_format, x1 + 220- denumiri[i - 1].nr *6, posi + w_opt / 7, l - 60, w_opt, black);
 		posi += liber + w_opt;
 	}
 }
 
-void meniu_schimb(int& nrbuton, int& w_opt)
+void meniu_schimb(int& nrbuton, int& w_opt, int& h)
 {
 	char text[30];
 	if (nrmeniu == 0) {
-		nrbuton = 3;
+		nrbuton = 4;
 		size_t outSize;
 
 		strcpy_s(text, "Resume");
 		mbstowcs_s(&outSize, denumiri[0].nume, text, 6);
 		denumiri[0].nr = 6;
 
-		strcpy_s(text, "Options");
+		strcpy_s(text, "Restart");
 		mbstowcs_s(&outSize, denumiri[1].nume, text, 7);
 		denumiri[1].nr = 7;
 
-		strcpy_s(text, "Restart");
+		strcpy_s(text, "Options");
 		mbstowcs_s(&outSize, denumiri[2].nume, text, 7);
 		denumiri[2].nr = 7;
+
+		strcpy_s(text, "Exit");
+		mbstowcs_s(&outSize, denumiri[3].nume, text, 4);
+		denumiri[3].nr = 4;
 		w_opt = 75;
+		h = 400;
 	}
 	if (nrmeniu == 1)
 	{
-		nrbuton = 4;
+		nrbuton = 3;
 		size_t outSize;
-		w_opt = 50;
+		w_opt = 75;
 
-		strcpy_s(text, "Chestie1");
-		mbstowcs_s(&outSize, denumiri[0].nume, text, 8);
-		denumiri[0].nr = 8;
+		strcpy_s(text, "Difficulty: 1");
+		mbstowcs_s(&outSize, denumiri[0].nume, text, 13);
+		denumiri[0].nr = 13;
 
-		strcpy_s(text, "Chestie2");
-		mbstowcs_s(&outSize, denumiri[1].nume, text, 8);
-		denumiri[1].nr = 8;
+		strcpy_s(text, "Music: On");
+		mbstowcs_s(&outSize, denumiri[1].nume, text, 9);
+		denumiri[1].nr = 9;
 
-		strcpy_s(text, "Chestie3");
-		mbstowcs_s(&outSize, denumiri[2].nume, text, 8);
-		denumiri[2].nr = 8;
-
-		strcpy_s(text, "Back");
-		mbstowcs_s(&outSize, denumiri[3].nume, text, 4);
-		denumiri[3].nr = 4;
+		strcpy_s(text, "Exit");
+		mbstowcs_s(&outSize, denumiri[2].nume, text, 4);
+		denumiri[2].nr = 4;
+		h = 300;
 	}
 }
 
 char DrawMenu(Graphics* gfx) {
+	Graphics::Sprite background;
+	gfx->LoadSprite(L"res/background.png", &background);
+	background.width = gfx->GetWindowWidth();
+	background.height = gfx->GetWindowHeight();
+	gfx->CreateTextFormat(L"Arial", 40.0f, &text_format);
+	int h = 400;
+	int nrbutoane = 3, w_but;
 	int result = 0;
+	meniu_schimb(nrbutoane, w_but, h);
 	while (1) {
-		gfx->CreateTextFormat(L"Arial", 40.0f, &text_format);
 		Input input;
 		input.Update(gfx->GetWindowX(), gfx->GetWindowY());
 		gfx->HandleMessages();
 		gfx->BeginFrame();
-
-		int nrbutoane = 3, w_but;
-		meniu_schimb(nrbutoane, w_but);
 		if (input.GetKeyDown(VK_DOWN) && up_down)
 		{
 			pos++;
 			if (pos > nrbutoane)
 				pos = 1;
 			up_down = 0;
+			PlaySound(TEXT("res/but.wav"), NULL, SND_FILENAME | SND_ASYNC);
 		}
 		else if (!input.GetKeyDown(VK_DOWN))
 			up_down = 1;
@@ -101,31 +116,69 @@ char DrawMenu(Graphics* gfx) {
 			if (pos < 1)
 				pos = nrbutoane;
 			up_up = 0;
+			PlaySound(TEXT("res/but.wav"), NULL, SND_FILENAME | SND_ASYNC);
 		}
 		else if (!input.GetKeyDown(VK_UP))
 			up_up = 1;
 
 		if (input.GetKeyDown(VK_RETURN) && up_enter)
 		{
+			PlaySound(TEXT("res/but.wav"), NULL, SND_FILENAME | SND_ASYNC);
 			if (nrmeniu == 0)
 				if (pos == 1)
-					return 1;
+					return result;
 				else if (pos == 2)
-					nrmeniu = 1;
+					return result +100;
+				else if (pos == 3) {
+					nrmeniu++;
+					meniu_schimb(nrbutoane, w_but, h);
+				}
 				else
-					return 2;
+					return 3;
 			else {
-				if (pos == 4)
-					nrmeniu--;
+				if (pos == 1) {
+
+					if(result%10==0){
+						char txt[20];
+						strcpy_s(txt, "Difficulty: 2");
+						change_but(0,txt, 13);
+						result++;
+					}
+					else if(result % 10 == 1) {
+						char txt[20];
+						strcpy_s(txt, "Difficulty: 1");
+						change_but(0, txt, 13);
+						result--;
+					}
+				}
+				if (pos == 2) {
+
+					if (result / 10 == 0) {
+						char txt[20];
+						strcpy_s(txt, "Music: Off");
+						change_but(1, txt, 10);
+						result +=10;
+					}
+					else if (result / 10 == 1) {
+						char txt[20];
+						strcpy_s(txt, "Music: On");
+						change_but(1, txt, 9);
+						result -=10;
+					}
+				}					
+				else
+					if (pos == 3) {
+						nrmeniu--;
+						meniu_schimb(nrbutoane, w_but, h);
+					}
 			}
 			up_enter = 0;
 		}
 		else if (!input.GetKeyDown(VK_RETURN))
 			up_enter = 1;
 
-		if (result)
-			return (int)result;
-		col_rect(gfx, nrbutoane, 500, 300, w_but);
+		gfx->DrawSprite(background, 0, 0);
+		col_rect(gfx, nrbutoane, 500, h, w_but);
 		gfx->EndFrame();
 	}
 }
