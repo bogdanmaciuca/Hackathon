@@ -65,7 +65,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 	
 	PlatformManager platforms(&gfx, &platform);
 
-	char mode = MODE_RANDOM_JUMP;
+	char mode = MODE_NORMAL;
 	Player p(&gfx, &mode);
 	UINT score = 0;
 
@@ -79,6 +79,22 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 
 	float delta_time = 0.0f;
 	bool ignore_next_delta_time = 0;
+	bool difficulty= 0, on_music =1;
+
+	PlaySound(TEXT("res/music.wav"), NULL, SND_LOOP | SND_ASYNC);
+	bool should_loop = true;
+	Graphics::Sprite first_screen;
+	gfx.LoadSprite(L"res/first.png", &first_screen);
+	first_screen.width = gfx.GetWindowWidth();
+	first_screen.height = gfx.GetWindowHeight();
+	while (should_loop)
+	{
+		input.Update();
+		should_loop = !input.AnyKeyPressed();
+		gfx.BeginFrame();
+		gfx.DrawSprite(first_screen,0,0);
+		gfx.EndFrame();
+	}
 	while (1) {
 		// Handles a menu glitch
 		if (ignore_next_delta_time) {
@@ -90,14 +106,14 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 		p.UpdateInput(&input);
 
 		if (input.GetKeyPressed(VK_ESCAPE)) {
+			PlaySound(NULL, 0, 0);
 			float last_camera_x = gfx.GetCameraX(), last_camera_y = gfx.GetCameraY();
 			gfx.SetCamera(gfx.GetWindowWidth() / 2, gfx.GetWindowHeight() / 2);
-			//switch (DrawMenu(&gfx)) {
-			//case 1: // Resume
+			MenuResults menu_act = DrawMenu(&gfx,difficulty, on_music);
+			if (menu_act.resume)
 				ignore_next_delta_time = 1;
-			//	break;
-			//case 2:
-				// Restart
+			else if (menu_act.restart)
+			{
 				if (score > highscore) highscore = score;
 				file.open("res/highscore.hs", std::ios::out);
 				file << highscore;
@@ -105,12 +121,22 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 				platforms.GeneratePlatforms();
 				p.Reset();
 				score = 0;
-			//	break;
-			//default:
-			//	break;
-			//}
-			gfx.SetCamera(last_camera_x, last_camera_y);
+			}
+			else;///exit
 
+			if (menu_act.difficulty)
+			{
+				difficulty = !difficulty;
+				//.....
+			}
+			else if (menu_act.music)			
+				on_music = !on_music;			
+			if (on_music)
+				PlaySound(TEXT("res/music.wav"), NULL, SND_LOOP | SND_ASYNC);
+			else
+				PlaySound(NULL, 0, 0);
+			
+			gfx.SetCamera(last_camera_x, last_camera_y);
 		}
 		p.UpdateInput(&input, mode == MODE_NO_LEFT);
 		p.UpdateGravity(platforms.GetPlatformVec(), &input, delta_time, mode == MODE_RANDOM_JUMP);

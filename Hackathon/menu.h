@@ -103,6 +103,7 @@ struct MenuResults {
 	bool difficulty;
 	bool restart;
 	bool exit;
+	bool resume;
 };
 
 MenuResults DrawMenu(Graphics* gfx, bool init_difficulty, bool init_music) {
@@ -145,16 +146,19 @@ MenuResults DrawMenu(Graphics* gfx, bool init_difficulty, bool init_music) {
 
 		if (input.GetKeyDown(VK_RETURN) && up_enter)
 		{
-			PlaySound(TEXT("res/but.wav"), NULL, SND_FILENAME | SND_ASYNC);
 			if (nrmeniu == 0)
 				if (pos == 1)
+				{
+					result.resume = 1;
 					return result;
+				}
 				else if (pos == 2)
 				{
 					result.restart = true;
 					return result;
 				}
 				else if (pos == 3) {
+					PlaySound(TEXT("res/but.wav"), NULL, SND_FILENAME | SND_ASYNC);
 					nrmeniu++;
 					meniu_schimb(nrbutoane, w_but, h, difficulty, on_music);
 				}
@@ -164,6 +168,7 @@ MenuResults DrawMenu(Graphics* gfx, bool init_difficulty, bool init_music) {
 					return result;
 				}
 			else {
+				PlaySound(TEXT("res/but.wav"), NULL, SND_FILENAME | SND_ASYNC);
 				if (pos == 1) {
 					if (!difficulty) {
 						char txt[20];
@@ -191,22 +196,22 @@ MenuResults DrawMenu(Graphics* gfx, bool init_difficulty, bool init_music) {
 					if (on_music) {
 						char txt[20];
 						strcpy_s(txt, "Music: Off");
-						change_but(0, txt, 10);
+						change_but(1, txt, 10);
 						on_music = 0;
 						if (on_music != init_music)
 							result.music = 1;
 						else
-							result.difficulty = 0;
+							result.music = 0;
 					}
 					else {
 						char txt[20];
 						strcpy_s(txt, "Music: On");
-						change_but(0, txt, 9);
-						on_music = 0;
+						change_but(1, txt, 9);
+						on_music = 1;
 						if (on_music != init_music)
 							result.music = 1;
 						else
-							result.difficulty = 0;
+							result.music = 0;
 					}
 				}
 				else
