@@ -7,6 +7,7 @@ class Player {
 private:
 	float m_x = 0, m_y = 0;
 	Graphics* gfx;
+	char* mode;
 	char m_anim_frame_num_arr[6] = { 8, 12, 1, 8, 12, 1 };
 	Graphics::ComplexAnimation m_animation;
 	float m_velo_x = 0, m_velo_y = 0;
@@ -16,6 +17,7 @@ private:
 	float decel = 0.1f;
 	bool direction = DIRECTION_RIGHT;
 	bool ground = 0;
+	bool aux_jump_cmd = 0;
 public:
 	float GetX() { return m_x; }
 	float GetY() { return m_y; }
@@ -23,13 +25,31 @@ public:
 		m_x = 0, m_y = -m_animation.sprite.height * 2;
 		m_velo_x = 0, m_velo_y = 0;
 	}
-	Player(Graphics* graphics) {
+	void SetNormalStats() {
+		m_timejump = 21, grav = 0.25f, jumpforce = -7.0f, adjustjump = 35.0f;
+		m_max_horiz_vel = 5.0f;
+		accel = 0.08f;
+		decel = 0.1f;
+	}
+	void SetSlipperyStats() {
+		accel = 0.01f;
+		decel = 0.005f;
+	}
+	void SetRandomJumpStats() {
+		SetNormalStats();
+		jumpforce = -10.0f;
+	}
+	Player(Graphics* graphics, char* _mode) {
 		gfx = graphics;
+		mode = _mode;
 		gfx->LoadComplexAnim(L"res/player_anim.png", &m_animation, 100.0f, 6, m_anim_frame_num_arr);
 		//gfx->SetComplexAnimState(&m_animation, 0);
 		m_animation.sprite.width = PLAYER_WIDTH;
 		m_animation.sprite.height = PLAYER_HEIGHT;
 		Reset();
+	}
+	void Jump() { // "You gotta' jump!"
+		aux_jump_cmd = 1;
 	}
 	void UpdateInput(Input* input) {
 		if (input->GetKeyDown('A')) m_velo_x -= accel;
@@ -63,17 +83,20 @@ public:
 
 		if (colision && (PLAYER_WIDTH + m_y > platforms[i].y + 2.0f)) ground = 0;
 		else if (colision) ground = 1;
-
+		
 		if (ground) {
 			m_velo_y = 0;
-			if (input->GetKeyPressed(VK_SPACE)) {
+			if (aux_jump_cmd || (*mode != MODE_RANDOM_JUMP && input->GetKeyPressed(VK_SPACE))) {
 				m_velo_y = jumpforce;
 				m_timejump = 0;
 				ground = false;
+				aux_jump_cmd = 0;
 			}
 		}
-		else if (!(input->GetKeyDown(VK_SPACE) && m_timejump < 3)) m_velo_y += grav;
-		else m_timejump += deltaTime / adjustjump;
+		else if (!(input->GetKeyDown(VK_SPACE) && m_timejump < 3))
+			m_velo_y += grav;
+		else
+			m_timejump += deltaTime / adjustjump;
 		
 		m_x += m_velo_x * deltaTime / 7.5;
 		m_y += m_velo_y * deltaTime / 7.5;
@@ -105,9 +128,8 @@ public:
 					gfx->SetComplexAnimState(&m_animation, 0);
 					direction = DIRECTION_RIGHT;
 				}
-				}
+			}
 		}
-		//gfx->SetComplexAnimState(&m_animation, 0);
 	}
 	void Draw(const float& delta_time) {
 		gfx->DrawComplexAnimFrame(&m_animation, delta_time, m_x, m_y);

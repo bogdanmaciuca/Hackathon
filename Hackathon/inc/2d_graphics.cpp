@@ -1,4 +1,6 @@
 #include "2d_graphics.h"
+#include <string>
+#define DEBUG_MODE
 
 LRESULT CALLBACK GfxWindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
 	switch (message) {
@@ -90,7 +92,7 @@ void Graphics::HandleMessages() {
 
 bool Graphics::LoadSprite(const wchar_t* filename, Sprite* sprite) {
 	bool debug = 0;
-#ifdef _DEBUG
+#ifdef DEBUG_MODE
 	debug = 1;
 #endif
 
@@ -102,19 +104,19 @@ bool Graphics::LoadSprite(const wchar_t* filename, Sprite* sprite) {
 		WICDecodeMetadataCacheOnLoad, &decoder
 	);
 	if (FAILED(hr)) {
-		//if (debug) std::cout << "HRESULT: " << hr << "\n";
+		if (debug) OutputDebugString((L"HRESULT: " + std::to_wstring(hr) + L"\n").c_str());
 		return 0;
 	}
 
 	hr = decoder->GetFrame(0, &source);
 	if (FAILED(hr)) {
-		//if (debug) std::cout << "HRESULT: " << hr << "\n";
+		if (debug) OutputDebugString((L"HRESULT: " + std::to_wstring(hr) + L"\n").c_str());
 		return 0;
 	}
 
 	m_wic_factory->CreateFormatConverter(&converter);
 	if (FAILED(hr)) {
-		//if (debug) std::cout << "HRESULT: " << hr << "\n";
+		if (debug) OutputDebugString((L"HRESULT: " + std::to_wstring(hr) + L"\n").c_str());
 		return 0;
 	}
 
@@ -124,13 +126,13 @@ bool Graphics::LoadSprite(const wchar_t* filename, Sprite* sprite) {
 		WICBitmapPaletteTypeMedianCut
 	);
 	if (FAILED(hr)) {
-		//if (debug) std::cout << "HRESULT: " << hr << "\n";
+		if (debug) OutputDebugString((L"HRESULT: " + std::to_wstring(hr) + L"\n").c_str());
 		return 0;
 	}
 
 	hr = m_render_target->CreateBitmapFromWicBitmap(converter, NULL, &sprite->bitmap);
 	if (FAILED(hr)) {
-		//if (debug) std::cout << "HRESULT: " << hr << "\n";
+		if (debug) OutputDebugString((L"HRESULT: " + std::to_wstring(hr) + L"\n").c_str());
 		return 0;
 	}
 
@@ -324,16 +326,16 @@ void Graphics::DrawEllipse(float x, float y, float rad_x, float rad_y, float* co
 
 	// Set rotation matrix
 	D2D1_POINT_2F center;
-	center.x = rel_x + rad_x;
-	center.y = rel_y + rad_y;
+	center.x = x + rad_x;
+	center.y = y + rad_y;
 	m_render_target->SetTransform(D2D1::Matrix3x2F::Rotation(angle, center));
 
 	if (fill)
 		m_render_target->FillEllipse(
-			D2D1::Ellipse(D2D1::Point2F(rel_x, rel_y), rad_x, rad_y), brush);
+			D2D1::Ellipse(D2D1::Point2F(x, y), rad_x, rad_y), brush);
 	else
 		m_render_target->DrawEllipse(
-			D2D1::Ellipse(D2D1::Point2F(rel_x, rel_y), rad_x, rad_y), brush);
+			D2D1::Ellipse(D2D1::Point2F(x, y), rad_x, rad_y), brush);
 
 	SafeRelease(&brush);
 }

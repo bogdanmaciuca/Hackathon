@@ -4,6 +4,19 @@
 #include <vector>
 #include <random>
 #include <string>
+#include <fstream>
+
+enum {
+	MODE_NORMAL,
+	MODE_RANDOM_JUMP,
+	MODE_NO_LEFT,
+	MODE_BUNNYHOP,
+	MODE_WIND,
+	MODE_RANDOM_DASH,
+	MODE_BIG_JUMPS,
+	MODE_SPEED,
+	MODE_SLIPPERY
+};
 
 struct Platform {
 	int x, y;
