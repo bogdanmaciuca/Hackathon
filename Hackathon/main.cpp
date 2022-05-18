@@ -1,7 +1,7 @@
-#define PLATFORM_WIDTH 69
-#define PLAYER_WIDTH 69
-#define PLAYER_HEIGHT 69
-#define PLATFORM_NUM_ON_SCR 10
+#define PLATFORM_WIDTH 50
+#define PLAYER_WIDTH 50
+#define PLAYER_HEIGHT 50
+#define PLATFORM_NUM_ON_SCR 50
 
 enum {
 	MODE_NORMAL,
@@ -41,14 +41,13 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 	file.close();
 
 	Input input;
-	
+
 	Graphics gfx("Hackathon", 800, 600, instance);
 	gfx.HandleMessages();
 
-	Graphics::Sprite platform;
-	gfx.LoadSprite(L"res/platform.png", &platform);
-	platform.width = PLAYER_WIDTH;
-	platform.height = PLAYER_HEIGHT;
+
+	Graphics::Sprite platform_sprites[9];
+
 	Graphics::Sprite background;
 	gfx.LoadSprite(L"res/background.png", &background);
 	background.width = gfx.GetWindowWidth();
@@ -62,12 +61,13 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 	gfx.CreateTextFormat(L"Arial", 40.0f, &text_format, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL);
 	float black[] = { 0, 0, 0, 1 };
 	float white[] = { 1, 1, 1, 1 };
-	
-	PlatformManager platforms(&gfx, &platform);
 
-	char mode = MODE_NORMAL;
+	PlatformManager platforms(&gfx);
+
+	char mode = MODE_GLIDING;
 	Player p(&gfx, &mode);
 	UINT score = 0;
+	short int camera_max_offset = 40.0f;
 
 	// Jump mode
 	float jump_mode_curr_time = 0;
@@ -79,69 +79,81 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 
 	float delta_time = 0.0f;
 	bool ignore_next_delta_time = 0;
-	bool difficulty= 0, on_music =1;
+	bool difficulty = 0, on_music = 0;
 
 	PlaySound(TEXT("res/music.wav"), NULL, SND_LOOP | SND_ASYNC);
+	// Controls screen
 	bool should_loop = true;
 	Graphics::Sprite first_screen;
-	gfx.LoadSprite(L"res/first.png", &first_screen);
+	gfx.LoadSprite(L"res/controls.png", &first_screen);
 	first_screen.width = gfx.GetWindowWidth();
 	first_screen.height = gfx.GetWindowHeight();
-	while (should_loop)
-	{
+	while (should_loop) {
 		input.Update();
 		should_loop = !input.AnyKeyPressed();
 		gfx.BeginFrame();
-		gfx.DrawSprite(first_screen,0,0);
+		gfx.DrawSprite(first_screen, 0, 0);
 		gfx.EndFrame();
 	}
+
+	// Units to next debuf
+	short int units_to_next_debuf = 0;
+	short int units_between_debufs = 100;
+	std::uniform_int_distribution<> mode_dist(0, 8);
+	bool should_draw_debuf = 1;
+	
+	float camera_speed = 0.005f;
 	while (1) {
-		// Handles a menu glitch
+		auto start = std::chrono::high_resolution_clock::now();
+
 		if (ignore_next_delta_time) {
 			ignore_next_delta_time = 0;
 			delta_time = 0;
 		}
-		auto start = std::chrono::high_resolution_clock::now();
-
 		p.UpdateInput(&input);
 
+		// Menu
 		if (input.GetKeyPressed(VK_ESCAPE)) {
 			PlaySound(NULL, 0, 0);
 			float last_camera_x = gfx.GetCameraX(), last_camera_y = gfx.GetCameraY();
 			gfx.SetCamera(gfx.GetWindowWidth() / 2, gfx.GetWindowHeight() / 2);
-			MenuResults menu_act = DrawMenu(&gfx,difficulty, on_music);
+			MenuResults menu_act = DrawMenu(&gfx, difficulty, on_music);
 			if (menu_act.resume)
 				ignore_next_delta_time = 1;
-			else if (menu_act.restart)
-			{
+			else if (menu_act.restart) {
 				if (score > highscore) highscore = score;
 				file.open("res/highscore.hs", std::ios::out);
 				file << highscore;
 				file.close();
-				platforms.GeneratePlatforms();
-				p.Reset();
+				platforms.GeneratePlatforms(mode);
+				p.Reset(1);
 				score = 0;
+				mode = MODE_NORMAL;
 			}
-			else;///exit
+			else {
+				gfx.~Graphics();
+				exit(0);
+			}
 
-			if (menu_act.difficulty)
-			{
+			if (menu_act.difficulty) {
 				difficulty = !difficulty;
-				//.....
 			}
-			else if (menu_act.music)			
-				on_music = !on_music;			
+			else if (menu_act.music)
+				on_music = !on_music;
 			if (on_music)
 				PlaySound(TEXT("res/music.wav"), NULL, SND_LOOP | SND_ASYNC);
 			else
 				PlaySound(NULL, 0, 0);
-			
+
 			gfx.SetCamera(last_camera_x, last_camera_y);
 		}
+		
 		p.UpdateInput(&input, mode == MODE_NO_LEFT);
 		p.UpdateGravity(platforms.GetPlatformVec(), &input, delta_time, mode == MODE_RANDOM_JUMP);
 		p.UpdateAnimationState();
+
 		if (p.GetX() / 20 > score) score = p.GetX() / 20;
+		units_to_next_debuf = (int)(p.GetX() / 20) % units_between_debufs + 2;
 
 		if (p.GetY() > 1000.0f) {
 			// Restart
@@ -149,10 +161,21 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 			file.open("res/highscore.hs", std::ios::out);
 			file << highscore;
 			file.close();
-			platforms.GeneratePlatforms();
-			p.Reset();
+			mode = MODE_NORMAL;
+			platforms.GeneratePlatforms(mode);
+			p.Reset(1);
 			score = 0;
 		}
+
+		// Mode handling
+		if (units_to_next_debuf > units_between_debufs) {
+			debuf_anim.index = 0;
+			units_to_next_debuf = 0;
+			mode = mode_dist(generator);
+		}
+		should_draw_debuf = 0;
+		if (debuf_anim.index < debuf_anim.frame_num - 1)
+			should_draw_debuf = 1;
 
 		switch (mode) {
 		case MODE_NORMAL:
@@ -178,14 +201,19 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 			p.Jump();
 			break;
 		case MODE_WIND:
+			p.SetWindStats();
 			break;
 		case MODE_GLIDING:
 			p.SetGlidingStats();
+			if (input.GetKeyDown(VK_SPACE)) p.SetLowerGravity();
+			else p.SetNormalGravity();
 			break;
 		case MODE_BIG_JUMPS:
 			p.SetBigJumpsStats();
 			break;
-			//case MODE_SPEED
+		case MODE_SPEED:
+			p.SetSpeedStats();
+			break;
 		case MODE_SLIPPERY:
 			p.SetSlipperyStats();
 			break;
@@ -193,23 +221,37 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 			break;
 		}
 
+		float cam_X = gfx.GetCameraX() + gfx.GetWindowWidth() / 2, cam_Y = gfx.GetCameraY() + gfx.GetWindowHeight() / 2;
+		float dist = sqrt(pow(cam_X - p.GetX() - 250, 2) + pow(cam_Y - p.GetY(), 2));
+		if (cam_X - (p.GetX() + 250) > 30)
+			cam_X -= delta_time * camera_speed * dist;
+		else if (cam_X - (p.GetX() + 250) < -30)
+			cam_X += delta_time * camera_speed * dist;
+
+		if (cam_Y - p.GetY() > 80)
+			cam_Y -= delta_time * camera_speed * dist;
+		else if (cam_Y - p.GetY() < -80)
+			cam_Y += delta_time * camera_speed * dist;
+		gfx.SetCamera(cam_X, cam_Y);
+
 		input.Update();
 		gfx.HandleMessages();
-		gfx.SetCamera(p.GetX(), p.GetY());
 		gfx.BeginFrame();
-		gfx.DrawSprite(background, p.GetX() - gfx.GetWindowWidth() / 2, p.GetY() - gfx.GetWindowHeight() / 2);
-		
+		gfx.DrawSprite(background, gfx.GetCameraX(), gfx.GetCameraY());
+
 		p.Draw(delta_time);
 		auto wstr = std::to_wstring(score) + L"\n" + std::to_wstring(highscore);
 		text_format.SetAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
 		gfx.DrawText(wstr.c_str(), wstr.size(), text_format, 600, 0, 200, 200, black);
 		text_format.SetAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-		platforms.Draw(p.GetX() - gfx.GetWindowWidth() / 2);
+		platforms.Draw(p.GetX() - gfx.GetWindowWidth() / 2, mode, difficulty);
 		if (mode == MODE_RANDOM_JUMP) {
 			gfx.DrawEllipse(700, 500, 100, 100, white);
 			gfx.DrawEllipse(700, 500, jump_mode_rad, jump_mode_rad, white, 0, 1);
 		}
-		gfx.DrawAnimationFrame(&debuf_anim, delta_time, p.GetX() - gfx.GetWindowWidth() / 2, p.GetY() - gfx.GetWindowHeight() / 2 + 100);
+		if (should_draw_debuf)
+			gfx.DrawAnimationFrame(&debuf_anim, delta_time, gfx.GetCameraX(), gfx.GetCameraY());
+		OutputDebugString((std::to_wstring(debuf_anim.index) + L"\n").c_str());
 		gfx.EndFrame();
 
 		auto end = std::chrono::high_resolution_clock::now();

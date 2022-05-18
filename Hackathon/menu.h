@@ -70,12 +70,12 @@ void meniu_schimb(int& nrbuton, int& w_opt, int& h, bool dif, bool mus)
 		w_opt = 75;
 
 		if (!dif) {
-			strcpy_s(text, "Difficulty: 1");
+			strcpy_s(text, "Difficulty: Easy");
 			mbstowcs_s(&outSize, denumiri[0].nume, text, 13);
 			denumiri[0].nr = 13;
 		}
 		else {
-			strcpy_s(text, "Difficulty: 2");
+			strcpy_s(text, "Difficulty: Hard");
 			mbstowcs_s(&outSize, denumiri[0].nume, text, 13);
 			denumiri[0].nr = 13;
 		}
