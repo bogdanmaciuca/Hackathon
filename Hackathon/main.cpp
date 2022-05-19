@@ -32,7 +32,7 @@ enum {
 #pragma comment(lib, "ole32")
 #pragma comment(lib, "winmm")
 
-void SaveControls(char *controls) {
+void SaveControls(char* controls) {
 	std::ofstream file("res/controls", std::ios::out | std::ios::trunc);
 	for (int i = 0; i < 3; i++) {
 		if (isalnum(controls[i])) file << controls[i] << " ";
@@ -61,10 +61,16 @@ void ReadControls(char* controls) {
 	file.close();
 }
 
-char GetModeFromFile() {
+char GetModeFromFile(bool &change_mode_rand) {
 	char result = MODE_NORMAL;
 	std::string str;
 	std::ifstream file("res/mode_to_load");
+	file >> str;
+	change_mode_rand = 0;
+	if (str != "dbg") {
+		change_mode_rand = 1;
+		return 0; // Still MODE_NORMAL
+	}
 	file >> str;
 	if (str == "MODE_NORMAL") return MODE_NORMAL;
 	else if (str == "MODE_RANDOM_JUMP") result = MODE_RANDOM_JUMP;
@@ -80,7 +86,7 @@ char GetModeFromFile() {
 }
 
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, int cli_args_num) {
-	bool change_modes_rand = 0;
+	bool change_modes_rand = 1;
 
 	std::fstream file;
 
@@ -117,26 +123,25 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 
 	PlatformManager platforms(&gfx);
 
-	char mode;
-	if (change_modes_rand) mode = MODE_NORMAL;
-	else mode = GetModeFromFile();
+	char mode = GetModeFromFile(change_modes_rand);
 	Player p(&gfx, &mode, controls);
 	UINT score = 0;
 	short int camera_max_offset = 40.0f;
-
+	
 	// Jump mode
 	float jump_mode_curr_time = 0;
-	float jump_mode_time = 2000;
+	float jump_mode_time = 500;
 	float jump_mode_rad = 0;
 	std::random_device rand_dev;
-	std::mt19937 generator;
+	std::mt19937 generator(rand_dev());
 	std::uniform_real_distribution<> jump_mode_rand_dist(1000.0f, 2000.0f);
 
 	float delta_time = 0.0f;
 	bool ignore_next_delta_time = 0;
 	bool difficulty = 0, on_music = 0;
 
-	PlaySound(TEXT("res/music.wav"), NULL, SND_LOOP | SND_ASYNC);
+	if (on_music)
+		PlaySound(TEXT("res/music.wav"), NULL, SND_LOOP | SND_ASYNC);
 	// Controls screen
 	bool should_loop = true;
 	Graphics::Sprite first_screen;
@@ -156,7 +161,8 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 	short int units_between_debufs = 150;
 	std::uniform_int_distribution<> mode_dist(0, 8);
 	bool should_draw_debuf = 1;
-	
+	int last_debuff = 0;
+
 	Menu menu;
 
 	float camera_speed = 0.004f;
@@ -189,6 +195,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 				file.close();
 				platforms.GeneratePlatforms(mode);
 				p.Reset(1);
+				last_debuff = 0;
 				score = 0;
 				if (change_modes_rand)
 					mode = MODE_NORMAL;
@@ -198,10 +205,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 				exit(0);
 			}
 
-			if (menu_act.difficulty) {
-				difficulty = !difficulty;
-			}
-			else if (menu_act.music)
+			if (menu_act.music)
 				on_music = !on_music;
 			if (on_music)
 				PlaySound(TEXT("res/music.wav"), NULL, SND_LOOP | SND_ASYNC);
@@ -210,7 +214,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 
 			gfx.SetCamera(last_camera_x, last_camera_y);
 		}
-		
+
 		if (p.GetX() / 20 > score) score = p.GetX() / 20;
 		units_to_next_debuf = (int)(p.GetX() / 20) % units_between_debufs + 2;
 
@@ -224,17 +228,19 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR cli_args, 
 				mode = MODE_NORMAL;
 			platforms.GeneratePlatforms(mode);
 			p.Reset(1);
+			last_debuff = 0;
 			score = 0;
 		}
 
 		// Mode handling
-		if (!should_draw_debuf && units_to_next_debuf > units_between_debufs - 25) {
+		if (!should_draw_debuf && units_to_next_debuf > units_between_debufs - 5 && p.GetX() > last_debuff + 20) {
 			debuf_anim.index = 0;
 		}
-		if (units_to_next_debuf > units_between_debufs) {
+		if (units_to_next_debuf > units_between_debufs && p.GetX() > last_debuff + 20) {
 			units_to_next_debuf = 0;
 			if (change_modes_rand)
 				mode = mode_dist(generator);
+			last_debuff = p.GetX();
 		}
 		should_draw_debuf = 0;
 		if (debuf_anim.index < debuf_anim.frame_num - 1)
