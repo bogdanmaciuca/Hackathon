@@ -19,11 +19,13 @@ private:
 	bool m_ground = 0;
 	bool m_aux_jump_cmd = 0;
 
-	float m_max_horiz_vel = 5.0f;
+	float m_max_horiz_vel = 7.0f;
 	float m_accel = 0.08f;
 	float m_decel = 0.1f;
 	float m_aux_horiz_accel = 0.0f;
 	bool m_direction = DIRECTION_RIGHT;
+
+	char *controls;
 public:
 	float GetX() { return m_x; }
 	float GetY() { return m_y; }
@@ -54,12 +56,13 @@ public:
 	}
 	void SetNormalStats() {
 		m_jump_velocity = -1.0f;
-		m_max_horiz_vel = 5.0f;
+		m_max_horiz_vel = 7.0f;
 		m_max_hold_jump_time = 300.0f;
 		m_accel = 0.08f;
 		m_decel = 0.1f;
 		m_aux_horiz_accel = 0.0f;
 		m_gravity = 0.008f;
+		m_animation.time_per_frame = 50.0f;
 	}
 	void SetSlipperyStats() {
 		SetNormalStats();
@@ -73,6 +76,7 @@ public:
 	}
 	void SetBunnyhopStats() {
 		SetNormalStats();
+		m_max_horiz_vel = 7.5f;
 		m_jump_velocity= -0.9f;
 		m_accel = 0.18f;
 		m_decel = 0.15f;
@@ -85,8 +89,8 @@ public:
 	}
 	void SetBigJumpsStats() {
 		SetNormalStats();
-		m_gravity = 0.005f;
-		m_jump_velocity = -1.5f;
+		m_gravity = 0.009f;
+		m_jump_velocity = -2.0f;
 	}
 	void SetGlidingStats() {
 		SetNormalStats();
@@ -96,11 +100,13 @@ public:
 		m_max_horiz_vel = 8.0f;
 		m_accel = 0.05f;
 		m_decel = 0.15f;
+		m_animation.time_per_frame = 40.0f;
 	}
-	Player(Graphics* graphics, char* _mode) {
+	Player(Graphics* graphics, char* _mode, char* _controls) {
 		gfx = graphics;
 		mode = _mode;
-		gfx->LoadComplexAnim(L"res/player_anim.png", &m_animation, 100.0f, 6, m_anim_frame_num_arr);
+		controls = _controls;
+		gfx->LoadComplexAnim(L"res/player_anim.png", &m_animation, 50.0f, 6, m_anim_frame_num_arr);
 		//gfx->SetComplexAnimState(&m_animation, 0);
 		m_animation.sprite.width = PLAYER_WIDTH;
 		m_animation.sprite.height = PLAYER_HEIGHT;
@@ -110,7 +116,7 @@ public:
 		m_aux_jump_cmd = 1;
 	}
 	void SetLowerGravity() {
-		m_gravity = 0.0001f;
+		m_gravity = 0.0025f;
 	}
 	void SetNormalGravity() {
 		m_gravity = 0.008f;
@@ -118,11 +124,12 @@ public:
 	void SetWindStats() {
 		SetNormalStats();
 		m_aux_horiz_accel = m_accel * 0.75f;
+		m_velocity_x = 8.0f;
 	}
 	void UpdateInput(Input* input, bool no_left = 0) {
-		if (!no_left && input->GetKeyDown('A')) m_velocity_x -= m_accel;
-		else if (input->GetKeyDown('D')) m_velocity_x += m_accel;
-		if (!(!no_left && input->GetKeyDown('A')) && !input->GetKeyDown('D')) {
+		if (!no_left && input->GetKeyDown(controls[0])) m_velocity_x -= m_accel;
+		else if (input->GetKeyDown(controls[1])) m_velocity_x += m_accel;
+		if (!(!no_left && input->GetKeyDown(controls[0])) && !input->GetKeyDown(controls[1])) {
 			if (m_velocity_x > 0)
 				m_velocity_x -= m_decel;
 			else
@@ -153,7 +160,7 @@ public:
 		i--;
 
 		if (m_ground) {
-			if (m_aux_jump_cmd || (!random_jump && input->GetKeyPressed(VK_SPACE))) {
+			if (m_aux_jump_cmd || (!random_jump && input->GetKeyPressed(controls[2]))) {
 				m_ground = 0;
 				m_velocity_y = m_jump_velocity;
 				m_holding_jump = 1;
@@ -161,7 +168,7 @@ public:
 				m_aux_jump_cmd = 0;
 			}
 		}
-		if (input->GetKeyReleased(VK_SPACE)) {
+		if (input->GetKeyReleased(controls[2])) {
 			m_holding_jump = 0;
 		}
 

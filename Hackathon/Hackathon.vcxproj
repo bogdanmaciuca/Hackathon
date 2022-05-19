@@ -151,6 +151,7 @@
     <ClInclude Include="player.h" />
     <ClInclude Include="inc\util.h" />
     <ClInclude Include="menu.h" />
+    <ClInclude Include="res\controls" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

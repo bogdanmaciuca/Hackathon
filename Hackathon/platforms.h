@@ -8,7 +8,7 @@ struct Platform {
 void GetCoefForMode(char mode, float *mode_coef_x, float *mode_coef_y, float *mode_len_coef) {
 	switch (mode) {
 	case MODE_NORMAL:
-		*mode_coef_x = 0.8f, *mode_coef_y = 1, *mode_len_coef = 0.75f;
+		*mode_coef_x = 0.8f, *mode_coef_y = 1, *mode_len_coef = 1.0f;
 		break;
 	case MODE_RANDOM_JUMP:
 		*mode_coef_x = 0.75f, *mode_coef_y = 1.5f, *mode_len_coef = 1.25f;
@@ -17,7 +17,7 @@ void GetCoefForMode(char mode, float *mode_coef_x, float *mode_coef_y, float *mo
 		*mode_coef_x = 1.5f, *mode_coef_y = 1, *mode_len_coef = 1.0f;
 		break;
 	case MODE_BUNNYHOP:
-		*mode_coef_x = 1.5f, *mode_coef_y = 1.5f, *mode_len_coef = 1.25f;
+		*mode_coef_x = 1.5f, *mode_coef_y = 1.5f, *mode_len_coef = 0.75f;
 		break;
 	case MODE_WIND:
 		*mode_coef_x = 2.0f, *mode_coef_y = 1, *mode_len_coef = 1.25f;
@@ -75,15 +75,15 @@ public:
 		}
 
 		generator = std::mt19937(rand_dev());
-		disx = std::uniform_int_distribution<>(200, 400);
+		disx = std::uniform_int_distribution<>(200, 300);
 		disy = std::uniform_int_distribution<>(-75, 75);
-		len = std::uniform_int_distribution<>(5, 10);
+		len = std::uniform_int_distribution<>(12, 16);
 		GeneratePlatforms(MODE_NORMAL);
 	}
 	void GeneratePlatforms(char mode) {
 		platforms.clear();
 		platforms.push_back({ 0, -PLAYER_HEIGHT, 5 });
-		for (int i = 0; i < PLATFORM_NUM_ON_SCR; i++) {
+		for (int i = 0; i < PLATFORM_NUM_ON_SCR - 1; i++) {
 			Platform new_platform = {};
 			Platform last_platform = platforms[platforms.size() - 1];
 			float mode_coef_x, mode_coef_y, mode_coef_len;
