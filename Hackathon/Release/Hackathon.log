@@ -1,4 +1,21 @@
-﻿  main.cpp
+﻿  2d_graphics.cpp
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(142,29): warning C4244: '=': conversion from 'UINT32' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(143,30): warning C4244: '=': conversion from 'UINT32' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(160,37): warning C4244: '=': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(161,38): warning C4244: '=': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(175,62): warning C4244: '=': conversion from 'float' to 'UINT', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(176,63): warning C4244: '=': conversion from 'float' to 'UINT', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(179,37): warning C4244: '=': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(180,38): warning C4244: '=': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(206,45): warning C4244: 'argument': conversion from 'const UINT' to 'FLOAT', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(206,27): warning C4244: 'argument': conversion from 'const UINT' to 'FLOAT', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(220,14): warning C4244: 'initializing': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(235,66): warning C4244: 'argument': conversion from 'UINT' to 'FLOAT', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(256,14): warning C4244: 'initializing': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(257,14): warning C4244: 'initializing': conversion from 'UINT' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(350,20): warning C4018: '<': signed/unsigned mismatch
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\2d_graphics.cpp(362,20): warning C4018: '<': signed/unsigned mismatch
+  main.cpp
 D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\input.h(48,26): warning C4244: '=': conversion from 'LONG' to 'short', possible loss of data
 D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\inc\input.h(49,26): warning C4244: '=': conversion from 'LONG' to 'short', possible loss of data
 D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\menu.h(5,38): warning C4305: 'initializing': truncation from 'double' to 'float'
@@ -38,7 +55,7 @@ D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\player.h(40,43): warning 
 D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\player.h(41,68): warning C4244: 'argument': conversion from 'UINT' to 'float', possible loss of data
 D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\player.h(41,40): warning C4244: 'argument': conversion from 'UINT' to 'float', possible loss of data
 D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\player.h(156,33): warning C4244: '=': conversion from 'const int' to 'float', possible loss of data
-D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\player.h(192,1): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\player.h(192,36): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
 D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\main.cpp(57,38): warning C4309: '=': truncation of constant value
 D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\main.cpp(112,39): warning C4244: '=': conversion from 'UINT' to 'float', possible loss of data
 D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\main.cpp(113,41): warning C4244: '=': conversion from 'UINT' to 'float', possible loss of data
@@ -55,8 +72,7 @@ D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\main.cpp(261,41): warning
 D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\main.cpp(302,14): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
 D:\ProgrammingProjects\C++Projects\Hackathon\Hackathon\main.cpp(108,19): warning C4101: 'platform_sprites': unreferenced local variable
   Generating code
-  1 of 844 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+  Previous IPDB not found, fall back to full compilation.
+  All 856 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Finished generating code
   Hackathon.vcxproj -> D:\ProgrammingProjects\C++Projects\Hackathon\Release\Hackathon.exe
